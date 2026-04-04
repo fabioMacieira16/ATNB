@@ -108,15 +108,26 @@ dashboard.py
 
 ---
 
-## 3. Ordem de Execução
+## 3. Análises Avulsas (processing.py)
 
-O pipeline **precisa rodar antes** do dashboard. Após isso, o dashboard é a única interface necessária:
+**`src/processing.py`** — módulo auxiliar para análises rápidas fora do dashboard. Agora também usa o fluxo novo: lê o dataset **Gold** (Parquet) gerado pelo pipeline, tendo acesso a todos os dados enriquecidos (município, habitantes, frota, vítimas, etc.).
 
+```python
+from src.processing import load_data, acidentes_por_municipio
+
+df = load_data()                        # lê data/processed/acidentes_gold/
+print(acidentes_por_municipio(df))      # top 20 municípios com mais acidentes
 ```
-pipeline.py  →  gera Parquets em data/processed/
-                        ↓
-               dashboard.py  (única interface de análise)
-```
+
+Funções disponíveis:
+| Função                        | Retorno                                          |
+|-------------------------------|--------------------------------------------------|
+| `load_data()`                 | DataFrame Gold completo                          |
+| `acidentes_por_estado(df)`    | Total de acidentes por UF                        |
+| `acidentes_por_causa(df)`     | Top 10 causas de acidentes                       |
+| `acidentes_por_hora(df)`      | Distribuição por hora do dia                     |
+| `acidentes_por_municipio(df)` | Ranking de municípios (acidentes + óbitos)       |
+| `obitos_por_tipo_acidente(df)`| Total de óbitos por tipo de acidente             |
 
 ---
 
@@ -127,6 +138,7 @@ ATNB/
 ├── app/
 │   └── dashboard.py              ← ponto de entrada do dashboard (Streamlit)
 ├── src/
+│   ├── processing.py             ← script legado (análises avulsas)
 │   └── pipeline/
 │       ├── __init__.py
 │       ├── pipeline.py           ← ponto de entrada do pipeline (orquestrador)
@@ -147,7 +159,7 @@ ATNB/
 
 ---
 
-## 5. Como Executar
+## 5. Ordem de Execução
 
 ```
 1. (uma vez) Instalar dependências:
