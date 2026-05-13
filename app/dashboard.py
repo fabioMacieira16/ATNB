@@ -231,19 +231,46 @@ st.divider()
 
 # ── Acidentes por Mês ─────────────────────────────────────────────────────────
 st.subheader("Acidentes por Mês")
-por_mes = load_temporal("por_mes")
-por_mes = por_mes.sort_values("mes_acidente")
-por_mes["mes_nome"] = por_mes["mes_acidente"].map({
+
+_MESES_ABREV = {
     1: "Jan", 2: "Fev", 3: "Mar", 4: "Abr", 5: "Mai", 6: "Jun",
     7: "Jul", 8: "Ago", 9: "Set", 10: "Out", 11: "Nov", 12: "Dez",
-})
+}
+
+if ano_sel == "Todos":
+    por_mes = load_temporal("por_mes")
+    por_mes = por_mes.sort_values("mes_acidente")
+    por_mes["mes_acidente"] = por_mes["mes_acidente"].astype(int)
+else:
+    # Carrega o ano inteiro (sem filtro de mês) para exibir todos os 12 meses
+    _gdf_yr_full = load_gold_year_month(
+        int(ano_sel), None, tuple(sorted(uf_sel)) if uf_sel else ()
+    )
+    por_mes = (
+        _gdf_yr_full.groupby("mes_acidente", observed=True)
+        .agg(
+            total_acidentes=("qtde_acidente", "sum"),
+            total_obitos=("qtde_obitos", "sum"),
+        )
+        .reset_index()
+        .sort_values("mes_acidente")
+    )
+    por_mes["mes_acidente"] = por_mes["mes_acidente"].astype(int)
+
+por_mes["mes_nome"] = por_mes["mes_acidente"].map(_MESES_ABREV)
+
+# Destaca o mês selecionado em vermelho; os demais ficam cinza
+_bar_colors = [
+    "#ef4444" if (mes_sel is not None and int(m) == mes_sel) else "#969292"
+    for m in por_mes["mes_acidente"]
+]
 
 fig_mes = go.Figure()
 fig_mes.add_trace(go.Bar(
     x=por_mes["mes_nome"],
     y=por_mes["total_acidentes"],
     name="Acidentes",
-    marker_color="#969292",
+    marker_color=_bar_colors,
     text=por_mes["total_acidentes"],
     texttemplate="%{text:,.0f}",
     textposition="outside",
@@ -253,7 +280,7 @@ fig_mes.add_trace(go.Scatter(
     y=por_mes["total_obitos"],
     name="Óbitos",
     mode="lines+markers",
-    marker_color="#ef4444",
+    marker_color="#1e3a5f",
     yaxis="y2",
 ))
 fig_mes.update_layout(
@@ -264,24 +291,6 @@ fig_mes.update_layout(
     margin=dict(t=10, b=10),
 )
 st.plotly_chart(fig_mes, use_container_width=True)
-
-st.divider()
-
-# ── Acidentes por Hora do Dia ─────────────────────────────────────────────────
-st.subheader("Acidentes por Hora do Dia")
-por_hora = load_temporal("por_hora")
-por_hora = por_hora.dropna(subset=["hora"])
-por_hora = por_hora[por_hora["hora"] <= 23].copy()
-por_hora["hora_fmt"] = por_hora["hora"].apply(lambda h: f"{int(h):02d}:00")
-fig_hora = px.area(
-    por_hora,
-    x="hora_fmt",
-    y="total_acidentes",
-    labels={"hora_fmt": "Hora", "total_acidentes": "Acidentes"},
-    height=320,
-)
-fig_hora.update_layout(margin=dict(t=10, b=10))
-st.plotly_chart(fig_hora, use_container_width=True)
 
 st.divider()
 
@@ -310,6 +319,25 @@ fig_dia.update_layout(margin=dict(t=10, b=10))
 st.plotly_chart(fig_dia, use_container_width=True)
 
 st.divider()
+
+# ── Acidentes por Hora do Dia ─────────────────────────────────────────────────
+st.subheader("Acidentes por Hora do Dia")
+por_hora = load_temporal("por_hora")
+por_hora = por_hora.dropna(subset=["hora"])
+por_hora = por_hora[por_hora["hora"] <= 23].copy()
+por_hora["hora_fmt"] = por_hora["hora"].apply(lambda h: f"{int(h):02d}:00")
+fig_hora = px.area(
+    por_hora,
+    x="hora_fmt",
+    y="total_acidentes",
+    labels={"hora_fmt": "Hora", "total_acidentes": "Acidentes"},
+    height=320,
+)
+fig_hora.update_layout(margin=dict(t=10, b=10))
+st.plotly_chart(fig_hora, use_container_width=True)
+
+st.divider()
+
 
 # ── Matriz de Correlação ──────────────────────────────────────────────────────
 st.subheader("Matriz de Correlação entre Indicadores de Acidentes")
