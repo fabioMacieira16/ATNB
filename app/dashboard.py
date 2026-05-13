@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from src.pipeline.persist import load_parquet  # noqa: E402
+from app.feriados import FERIADO_NACIONAL, PONTO_FACULTATIVO, get_feriados  # noqa: E402
 
 PROCESSED_DIR = ROOT / "data" / "processed"
 
@@ -280,7 +281,7 @@ fig_mes.add_trace(go.Scatter(
     y=por_mes["total_obitos"],
     name="Óbitos",
     mode="lines+markers",
-    marker_color="#1e3a5f",
+    marker_color="#ef4444",
     yaxis="y2",
 ))
 fig_mes.update_layout(
@@ -294,26 +295,144 @@ st.plotly_chart(fig_mes, use_container_width=True)
 
 st.divider()
 
-# ── Acidentes por Dia da Semana ───────────────────────────────────────────────
-st.subheader("Acidentes por Dia da Semana")
-por_dia = load_temporal("por_dia_semana")
-ordem_dias = [
+_ordem_dias = [
     "SEGUNDA-FEIRA", "TERCA-FEIRA", "QUARTA-FEIRA",
     "QUINTA-FEIRA", "SEXTA-FEIRA", "SABADO", "DOMINGO",
 ]
+_DIAS_ABREV = {
+    "SEGUNDA-FEIRA": "Seg", "TERCA-FEIRA": "Ter", "QUARTA-FEIRA": "Qua",
+    "QUINTA-FEIRA": "Qui", "SEXTA-FEIRA": "Sex", "SABADO": "Sáb", "DOMINGO": "Dom",
+}
+_ano_feriados = int(ano_sel) if ano_sel != "Todos" else 2026
+_feriados_ano = get_feriados(_ano_feriados)
+
+# ── Acidentes por Dia do Mês ──────────────────────────────────────────────────
+if ano_sel == "Todos":
+    st.subheader("Acidentes por Dia do Mês")
+    st.info(
+        "Selecione um **ano** no filtro lateral para ver a distribuição por "
+        "dia do mês e identificar datas comemorativas."
+    )
+else:
+    _lbl_dm = str(ano_sel) if mes_sel is None else f"{_MESES_ABREV[mes_sel]}/{ano_sel}"
+    st.subheader(f"Acidentes por Dia do Mês — {_lbl_dm}")
+
+    _df_dm = _gdf_yr.copy()
+    _df_dm["dia_mes"] = pd.to_datetime(
+        _df_dm["data_acidente"], errors="coerce"
+    ).dt.day
+
+    por_dia_mes = (
+        _df_dm.dropna(subset=["dia_mes"])
+        .groupby("dia_mes", observed=True)
+        .agg(
+            total_acidentes=("qtde_acidente", "sum"),
+            total_obitos=("qtde_obitos", "sum"),
+        )
+        .reset_index()
+        .sort_values("dia_mes")
+    )
+    por_dia_mes["dia_mes"] = por_dia_mes["dia_mes"].astype(int)
+
+    _dias_feriado_mes: dict[int, str] = {
+        d: tipo for d, _, tipo in _feriados_ano.get(mes_sel or 0, [])
+    }
+    _cores_dm = [
+        "#ef4444" if _dias_feriado_mes.get(int(r["dia_mes"])) == FERIADO_NACIONAL
+        else "#f97316" if int(r["dia_mes"]) in _dias_feriado_mes
+        else "#3b82f6"
+        for _, r in por_dia_mes.iterrows()
+    ]
+
+    fig_dia_mes = go.Figure()
+    fig_dia_mes.add_trace(go.Bar(
+        x=por_dia_mes["dia_mes"],
+        y=por_dia_mes["total_acidentes"],
+        name="Acidentes",
+        marker_color=_cores_dm,
+        text=por_dia_mes["total_acidentes"],
+        texttemplate="%{text:,.0f}",
+        textposition="outside",
+    ))
+    fig_dia_mes.add_trace(go.Scatter(
+        x=por_dia_mes["dia_mes"],
+        y=por_dia_mes["total_obitos"],
+        name="Óbitos",
+        mode="lines+markers",
+        marker_color="#cc2d72",
+        yaxis="y2",
+    ))
+
+    if mes_sel is not None:
+        for _dia_f, _nome_f, _tipo_f in _feriados_ano.get(mes_sel, []):
+            fig_dia_mes.add_vline(
+                x=_dia_f,
+                line_dash="dash",
+                line_color="#ef4444" if _tipo_f == FERIADO_NACIONAL else "#f97316",
+                annotation_text=_nome_f,
+                annotation_position="top right",
+                annotation_font_size=10,
+            )
+
+    fig_dia_mes.update_layout(
+        xaxis=dict(title="Dia do Mês", dtick=1),
+        yaxis=dict(title="Total de Acidentes"),
+        yaxis2=dict(title="Total de Óbitos", overlaying="y", side="right"),
+        height=400,
+        margin=dict(t=10, b=10),
+        legend=dict(orientation="h"),
+    )
+    st.plotly_chart(fig_dia_mes, use_container_width=True)
+
+    if mes_sel is not None and mes_sel in _feriados_ano:
+        _nac = [(d, n) for d, n, t in _feriados_ano[mes_sel] if t == FERIADO_NACIONAL]
+        _fac = [(d, n) for d, n, t in _feriados_ano[mes_sel] if t == PONTO_FACULTATIVO]
+        _partes: list[str] = []
+        if _nac:
+            _partes.append("🔴 Feriados: " + ", ".join(f"dia {d} — {n}" for d, n in _nac))
+        if _fac:
+            _partes.append("🟠 Pontos facultativos: " + ", ".join(f"dia {d} — {n}" for d, n in _fac))
+        if _partes:
+            st.caption(" | ".join(_partes))
+
+st.divider()
+
+# ── Acidentes por Dia da Semana ───────────────────────────────────────────────
+_title_dia_sem = "Acidentes por Dia da Semana"
+if ano_sel != "Todos":
+    _lbl_dia = str(ano_sel) if mes_sel is None else f"{_MESES_ABREV[mes_sel]}/{ano_sel}"
+    _title_dia_sem += f" — {_lbl_dia}"
+st.subheader(_title_dia_sem)
+
+if ano_sel == "Todos":
+    por_dia = load_temporal("por_dia_semana")
+else:
+    por_dia = (
+        _gdf_yr
+        .groupby("dia_semana", observed=True)
+        .agg(
+            total_acidentes=("qtde_acidente", "sum"),
+            total_obitos=("qtde_obitos", "sum"),
+        )
+        .reset_index()
+    )
+
 por_dia["dia_semana"] = pd.Categorical(
-    por_dia["dia_semana"].astype(str), categories=ordem_dias, ordered=True
+    por_dia["dia_semana"].astype(str), categories=_ordem_dias, ordered=True
 )
+por_dia["dia_abrev"] = por_dia["dia_semana"].map(_DIAS_ABREV)
 por_dia = por_dia.dropna(subset=["dia_semana"]).sort_values("dia_semana")
+
 fig_dia = px.bar(
     por_dia,
     x="total_acidentes",
-    y="dia_semana",
+    y="dia_abrev",
     orientation="h",
     color="total_obitos",
     color_continuous_scale="OrRd",
-    labels={"dia_semana": "Dia", "total_acidentes": "Acidentes", "total_obitos": "Óbitos"},
+    labels={"dia_abrev": "Dia", "total_acidentes": "Acidentes", "total_obitos": "Óbitos"},
     height=380,
+    category_orders={"dia_abrev": [_DIAS_ABREV[d] for d in _ordem_dias]},
 )
 fig_dia.update_layout(margin=dict(t=10, b=10))
 st.plotly_chart(fig_dia, use_container_width=True)
