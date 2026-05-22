@@ -144,9 +144,27 @@ streamlit run app/dashboard.py
 
 ## 🎯 Resultados Esperados
 
-* Identificar regiões com maior número de acidentes
-* Entender os principais fatores de risco
-* Analisar padrões de comportamento no trânsito
+### 📍 Análise Geográfica
+* Ranking de municípios e UFs com maior número de acidentes
+* Taxa de acidentes por 100 mil habitantes e taxa de mortalidade por município
+* Correlação entre frota circulante e número de acidentes por município
+
+### 📅 Análise Temporal
+* Evolução anual de acidentes e óbitos (2018–2025)
+* Distribuição mensal com destaque para meses críticos
+* Distribuição por dia do mês com marcação de feriados nacionais e pontos facultativos
+* Distribuição por dia da semana e horário do dia com maior concentração de acidentes
+
+### ⚠️ Fatores de Risco
+* Acidentes com suspeita de consumo de álcool/entorpecentes
+* Impacto de condições adversas de pista (buracos, pista molhada/escorregadia)
+* Influência de condições meteorológicas (chuva, nevoeiro, granizo, vento)
+* Tipo de veículo predominante envolvido nos acidentes por UF
+
+### 🤖 Aprendizado de Máquina
+* Classificação da gravidade da lesão (Sem Ferimento / Leve / Grave / Óbito)
+* Comparativo entre Decision Tree, MLP (rede neural) e SVC
+* Avaliação com `train_test_split` e validação cruzada (cv=10)
 
 ---
 
