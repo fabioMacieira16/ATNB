@@ -142,29 +142,29 @@ streamlit run app/dashboard.py
 
 ---
 
-## 🎯 Resultados Esperados
+## 🎯 Conclusões da Análise
 
-### 📍 Análise Geográfica
-* Ranking de municípios e UFs com maior número de acidentes
-* Taxa de acidentes por 100 mil habitantes e taxa de mortalidade por município
-* Correlação entre frota circulante e número de acidentes por município
+### 📅 Evolução Temporal (2018–2025)
+* O número de acidentes cresceu **+58%** entre 2018 (749 mil) e 2023 (1,18 milhão), pico histórico da série
+* Apesar do crescimento, o número de mortes **caiu progressivamente** — de 26,5 mil em 2019 para 19,3 mil em 2025 — indicando avanços em atendimento e segurança veicular
+* Em 2020 houve queda de ~10% nos acidentes (928 mil) em relação a 2019, reflexo das restrições de mobilidade impostas pela pandemia de COVID-19
+* **Outubro** é consistentemente o mês mais perigoso (741 mil acidentes, 16,8 mil mortes); dezembro e janeiro registram os menores índices
 
-### 📅 Análise Temporal
-* Evolução anual de acidentes e óbitos (2018–2025)
-* Distribuição mensal com destaque para meses críticos
-* Distribuição por dia do mês com marcação de feriados nacionais e pontos facultativos
-* Distribuição por dia da semana e horário do dia com maior concentração de acidentes
+### ⏰ Padrão Horário e Semanal
+* O horário de maior incidência de acidentes é entre **17h e 19h** (saída do trabalho), com pico às 17h (615 mil acidentes)
+* Entretanto, às **19h** a letalidade é mais alta: 13,2 mil mortes — provável combinação de cansaço e menor visibilidade
+* **Domingo** concentra a maior letalidade da semana: apesar de ser o dia com menos acidentes (991 mil), registra o maior número de óbitos (41 mil), sugerindo influência de alta velocidade e consumo de álcool
+* **Sexta-feira** lidera em volume total de acidentes (1,34 milhão)
 
-### ⚠️ Fatores de Risco
-* Acidentes com suspeita de consumo de álcool/entorpecentes
-* Impacto de condições adversas de pista (buracos, pista molhada/escorregadia)
-* Influência de condições meteorológicas (chuva, nevoeiro, granizo, vento)
-* Tipo de veículo predominante envolvido nos acidentes por UF
+### 📍 Distribuição Geográfica
+* **Belo Horizonte (MG)** é o município com mais acidentes registrados (593 mil), porém com baixa mortalidade relativa
+* **São Paulo (SP)** aparece em 3.º lugar em acidentes (299 mil), mas com mortalidade **6× maior** que BH (6,7 mil óbitos), apontando maior severidade dos acidentes
+* **MG** lidera em volume de acidentes entre os estados (2,1 milhões), enquanto **SP** e **BA** apresentam as maiores taxas de mortalidade (10,5% e 8,3%, respectivamente)
+* **SC e DF** possuem as menores taxas de mortalidade entre os estados com alto volume de acidentes (~1,2–1,4%)
 
-### 🤖 Aprendizado de Máquina
-* Classificação da gravidade da lesão (Sem Ferimento / Leve / Grave / Óbito)
-* Comparativo entre Decision Tree, MLP (rede neural) e SVC
-* Avaliação com `train_test_split` e validação cruzada (cv=10)
+### 🔗 Correlação Frota × Acidentes
+* Coeficiente de Pearson **r = 0,686** entre frota circulante e total de acidentes — correlação moderada-forte
+* Municípios com maior frota tendem a ter mais acidentes, mas a relação não é diretamente proporcional: cidades menores com frota reduzida podem apresentar taxas por 100 mil habitantes até mais elevadas
 
 ---
 
