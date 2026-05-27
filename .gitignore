@@ -35,12 +35,8 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Data (optional: uncomment if you don't want to track CSV files)
-# data/*.csv
-
-# Data folder - ignore all contents but keep the folder
-data/*
-data/**
+# Data — ignorar todos os arquivos (CSV, parquet, etc.), manter apenas .gitkeep
+data/
 !data/.gitkeep
 
 # ZIP de dados gerado pelo setup_data.py
@@ -420,3 +416,5 @@ processed_data.zip
 .claude/get-shit-done/templates/research-project/PITFALLS.md
 .claude/get-shit-done/templates/research-project/STACK.md
 .claude/get-shit-done/templates/research-project/SUMMARY.md
+. c l a u d e /  
+ 
