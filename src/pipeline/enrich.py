@@ -31,12 +31,44 @@ def enrich_acidentes_localidade(
 
     # Selecionar apenas as colunas úteis da dimensão localidade
     loc_cols = [
-        "chv_localidade", "municipio", "regiao", "codigo_ibge",
+        "chv_localidade", "uf", "municipio", "regiao", "codigo_ibge",
         "qtde_habitantes", "frota_total", "frota_circulante", "taxa_motorizacao",
     ]
     loc = df_localidade[loc_cols].copy()
 
-    df = df_acidentes.merge(loc, on="chv_localidade", how="left")
+    # Join primário pela chave técnica da localidade.
+    df = df_acidentes.merge(loc, on="chv_localidade", how="left", suffixes=("", "_loc"))
+
+    # Para linhas vindas do Datatran (sem chv_localidade), faz fallback por UF + município.
+    if "municipio" in df.columns:
+        loc_city = (
+            loc.rename(columns={"uf": "uf_acidente"})[
+                [
+                    "uf_acidente", "municipio", "regiao", "codigo_ibge",
+                    "qtde_habitantes", "frota_total", "frota_circulante", "taxa_motorizacao",
+                ]
+            ]
+            .dropna(subset=["uf_acidente", "municipio"])
+            .drop_duplicates(subset=["uf_acidente", "municipio"], keep="last")
+        )
+
+        df = df.merge(
+            loc_city,
+            on=["uf_acidente", "municipio"],
+            how="left",
+            suffixes=("", "_fb"),
+        )
+
+        fill_cols = [
+            "regiao", "codigo_ibge", "qtde_habitantes", "frota_total",
+            "frota_circulante", "taxa_motorizacao",
+        ]
+        for col in fill_cols:
+            fb_col = f"{col}_fb"
+            if fb_col in df.columns:
+                df[col] = df[col].fillna(df[fb_col])
+                df.drop(columns=[fb_col], inplace=True)
+
     pct_enrich = df["municipio"].notna().mean() * 100
     logger.info("  → %.1f%% dos acidentes enriquecidos com localidade", pct_enrich)
     return df

@@ -9,7 +9,10 @@ A análise busca identificar padrões relacionados a:
 * acidentes de trânsito
 * distribuição geográfica
 * causas de acidentes
+* óbitos por acidente
 * horários com maior incidência
+* sazonalidade dos acidentes por mês
+* fatores que explicam o pico de acidentes em outubro
 
 ---
 
@@ -19,6 +22,7 @@ Os dados utilizados são provenientes de bases públicas:
 
 * Polícia Rodoviária Federal (PRF)
 * SENATRAN (Secretaria Nacional de Trânsito)
+* DETRAN / Datatran (base nacional de acidentes)
 * Portal Brasileiro de Dados Abertos
 
 Todos os dados são anonimizados e não contêm informações pessoais sensíveis.
@@ -63,6 +67,8 @@ O projeto apresenta:
 * análise por horário
 * principais causas de acidentes
 * distribuição geográfica
+* relação entre total de acidentes e total de óbitos por município
+* análise sazonal mensal com foco no mês de outubro
 
 Todos os gráficos são interativos e executados no navegador.
 
@@ -78,13 +84,14 @@ src/pipeline/pipeline.py          ← Orquestrador principal
          │
          ├─► src/pipeline/ingestion.py   ← BRONZE: lê os CSVs brutos de data/
          │         data/acidentes2023.csv
+         │         data/datatran2026.csv
          │         data/Vitimas_DadosAbertos_20260312.csv
          │         data/TipoVeiculo_DadosAbertos_20260312.csv
          │         data/Localidade_20260312.csv
          │         data/Volume_trafego_mensal.csv
          │
          ├─► src/pipeline/transform.py   ← SILVER: limpa e padroniza os dados
-         │         Normaliza datas, horas, strings e remove nulos
+         │         Normaliza datas, horas, strings, causa_acidente e remove nulos
          │
          ├─► src/pipeline/enrich.py      ← GOLD: cruza as fontes e gera analíticos
          │         acidentes + localidade (município/UF/habitantes/frota)
@@ -142,11 +149,29 @@ streamlit run app/dashboard.py
 
 ---
 
-## 🎯 Resultados Esperados
+## 🎯 Conclusões da Análise
 
-* Identificar regiões com maior número de acidentes
-* Entender os principais fatores de risco
-* Analisar padrões de comportamento no trânsito
+### 📅 Evolução Temporal (2018–2025)
+* O número de acidentes cresceu **+58%** entre 2018 (749 mil) e 2023 (1,18 milhão), pico histórico da série
+* Apesar do crescimento, o número de mortes **caiu progressivamente** — de 26,5 mil em 2019 para 19,3 mil em 2025 — indicando avanços em atendimento e segurança veicular
+* Em 2020 houve queda de ~10% nos acidentes (928 mil) em relação a 2019, reflexo das restrições de mobilidade impostas pela pandemia de COVID-19
+* **Outubro** é consistentemente o mês mais perigoso (741 mil acidentes, 16,8 mil mortes); dezembro e janeiro registram os menores índices
+
+### ⏰ Padrão Horário e Semanal
+* O horário de maior incidência de acidentes é entre **17h e 19h** (saída do trabalho), com pico às 17h (615 mil acidentes)
+* Entretanto, às **19h** a letalidade é mais alta: 13,2 mil mortes — provável combinação de cansaço e menor visibilidade
+* **Domingo** concentra a maior letalidade da semana: apesar de ser o dia com menos acidentes (991 mil), registra o maior número de óbitos (41 mil), sugerindo influência de alta velocidade e consumo de álcool
+* **Sexta-feira** lidera em volume total de acidentes (1,34 milhão)
+
+### 📍 Distribuição Geográfica
+* **Belo Horizonte (MG)** é o município com mais acidentes registrados (593 mil), porém com baixa mortalidade relativa
+* **São Paulo (SP)** aparece em 3.º lugar em acidentes (299 mil), mas com mortalidade **6× maior** que BH (6,7 mil óbitos), apontando maior severidade dos acidentes
+* **MG** lidera em volume de acidentes entre os estados (2,1 milhões), enquanto **SP** e **BA** apresentam as maiores taxas de mortalidade (10,5% e 8,3%, respectivamente)
+* **SC e DF** possuem as menores taxas de mortalidade entre os estados com alto volume de acidentes (~1,2–1,4%)
+
+### 🔗 Correlação Frota × Acidentes
+* Coeficiente de Pearson **r = 0,686** entre frota circulante e total de acidentes — correlação moderada-forte
+* Municípios com maior frota tendem a ter mais acidentes, mas a relação não é diretamente proporcional: cidades menores com frota reduzida podem apresentar taxas por 100 mil habitantes até mais elevadas
 
 ---
 
