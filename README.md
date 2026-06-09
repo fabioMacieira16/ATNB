@@ -1,4 +1,4 @@
-# 🚗 Análise de Dados de Trânsito no Brasil
+# 🚗 Análise de Trânsito Nacional do Brasil
 
 ## 📌 Objetivo
 
@@ -169,9 +169,9 @@ streamlit run app/dashboard.py
 * **MG** lidera em volume de acidentes entre os estados (2,1 milhões), enquanto **SP** e **BA** apresentam as maiores taxas de mortalidade (10,5% e 8,3%, respectivamente)
 * **SC e DF** possuem as menores taxas de mortalidade entre os estados com alto volume de acidentes (~1,2–1,4%)
 
-### 🔗 Relação Acidentes × Óbitos
-* A relação entre total de acidentes e total de óbitos por município ajuda a separar locais com alta frequência de ocorrências dos locais com maior gravidade.
-* Municípios com volume semelhante de acidentes podem apresentar mortalidade muito diferente, reforçando a importância de analisar infraestrutura, velocidade média, horário e contexto local.
+### 🔗 Correlação Frota × Acidentes
+* Coeficiente de Pearson **r = 0,686** entre frota circulante e total de acidentes — correlação moderada-forte
+* Municípios com maior frota tendem a ter mais acidentes, mas a relação não é diretamente proporcional: cidades menores com frota reduzida podem apresentar taxas por 100 mil habitantes até mais elevadas
 
 ---
 
