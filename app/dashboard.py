@@ -48,11 +48,6 @@ def load_temporal(name: str) -> pd.DataFrame:
     return load_parquet(PROCESSED_DIR / "analise_temporal" / f"{name}.parquet")
 
 
-@st.cache_data(show_spinner="Carregando correlação...")
-def load_correlacao() -> pd.DataFrame:
-    return load_parquet(PROCESSED_DIR / "correlacao_frota_acidentes.parquet")
-
-
 @st.cache_data(show_spinner="Carregando acidentes por UF...")
 def load_gold_uf(ufs: tuple) -> pd.DataFrame:
     filters = [("uf_acidente", "in", list(ufs))] if ufs else None
@@ -503,30 +498,26 @@ st.plotly_chart(fig_matrix, use_container_width=True)
 
 st.divider()
 
-# ── Correlação: Frota x Acidentes ────────────────────────────────────────────
-st.subheader("Correlação: Frota Circulante x Total de Acidentes por Município")
-df_corr = load_correlacao()
-df_corr_plot = df_corr[
-    (df_corr["frota_circulante"] > 0) & (df_corr["total_acidentes"] > 0)
+# ── Relação: Acidentes x Óbitos ──────────────────────────────────────────────
+st.subheader("Relação: Total de Acidentes x Total de Óbitos por Município")
+df_corr_plot = df_ranking[
+    (df_ranking["total_acidentes"] > 0) & (df_ranking["total_obitos"] >= 0)
 ].copy()
-if uf_sel:
-    df_corr_plot = df_corr_plot[df_corr_plot["uf_acidente"].isin(uf_sel)]
 
 fig_corr = px.scatter(
     df_corr_plot,
-    x="frota_circulante",
-    y="total_acidentes",
+    x="total_acidentes",
+    y="total_obitos",
     color="uf_acidente",
-    size="total_obitos",
+    size="total_feridos",
     size_max=30,
     hover_name="municipio",
     hover_data={"taxa_acidente_100k": True, "taxa_mortalidade": True},
-    log_x=True,
-    log_y=True,
     labels={
-        "frota_circulante": "Frota Circulante (log)",
-        "total_acidentes": "Total de Acidentes (log)",
+        "total_acidentes": "Total de Acidentes",
+        "total_obitos": "Total de Óbitos",
         "uf_acidente": "UF",
+        "total_feridos": "Total de Feridos",
     },
     height=420,
 )

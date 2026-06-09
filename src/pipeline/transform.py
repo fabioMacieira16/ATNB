@@ -30,7 +30,7 @@ def _parse_hora(series: pd.Series) -> pd.Series:
     Converte hora no formato HHMMSS (inteiro) para hora inteira (0-23).
     Ex: 214400 → 21, 94000 → 9
     """
-    s = series.astype(str).str.zfill(6)
+    s = series.astype(str).str.replace(r"\D", "", regex=True).str.zfill(6)
     return pd.to_numeric(s.str[:2], errors="coerce").astype("Int8")
 
 
@@ -77,9 +77,9 @@ def transform_acidentes(df: pd.DataFrame) -> pd.DataFrame:
 
     # ── 5. Colunas categóricas ────────────────────────────────────────────
     str_cols = [
-        "uf_acidente", "dia_semana", "fase_dia", "tp_acidente",
+        "uf_acidente", "dia_semana", "fase_dia", "tp_acidente", "causa_acidente",
         "cond_meteorologica", "cond_pista", "tp_rodovia", "tp_pavimento",
-        "tp_pista", "bairro_acidente", "end_acidente",
+        "tp_pista", "bairro_acidente", "end_acidente", "municipio",
     ]
     for col in str_cols:
         if col in df.columns:
@@ -87,7 +87,7 @@ def transform_acidentes(df: pd.DataFrame) -> pd.DataFrame:
 
     # Categorias conhecidas → dtype category para economizar memória
     cat_cols = [
-        "uf_acidente", "dia_semana", "fase_dia", "tp_acidente",
+        "uf_acidente", "dia_semana", "fase_dia", "tp_acidente", "causa_acidente",
         "cond_meteorologica", "cond_pista", "tp_rodovia", "tp_pista",
     ]
     for col in cat_cols:

@@ -9,7 +9,10 @@ A análise busca identificar padrões relacionados a:
 * acidentes de trânsito
 * distribuição geográfica
 * causas de acidentes
+* óbitos por acidente
 * horários com maior incidência
+* sazonalidade dos acidentes por mês
+* fatores que explicam o pico de acidentes em outubro
 
 ---
 
@@ -19,6 +22,7 @@ Os dados utilizados são provenientes de bases públicas:
 
 * Polícia Rodoviária Federal (PRF)
 * SENATRAN (Secretaria Nacional de Trânsito)
+* DETRAN / Datatran (base nacional de acidentes)
 * Portal Brasileiro de Dados Abertos
 
 Todos os dados são anonimizados e não contêm informações pessoais sensíveis.
@@ -63,6 +67,8 @@ O projeto apresenta:
 * análise por horário
 * principais causas de acidentes
 * distribuição geográfica
+* relação entre total de acidentes e total de óbitos por município
+* análise sazonal mensal com foco no mês de outubro
 
 Todos os gráficos são interativos e executados no navegador.
 
@@ -78,13 +84,14 @@ src/pipeline/pipeline.py          ← Orquestrador principal
          │
          ├─► src/pipeline/ingestion.py   ← BRONZE: lê os CSVs brutos de data/
          │         data/acidentes2023.csv
+         │         data/datatran2026.csv
          │         data/Vitimas_DadosAbertos_20260312.csv
          │         data/TipoVeiculo_DadosAbertos_20260312.csv
          │         data/Localidade_20260312.csv
          │         data/Volume_trafego_mensal.csv
          │
          ├─► src/pipeline/transform.py   ← SILVER: limpa e padroniza os dados
-         │         Normaliza datas, horas, strings e remove nulos
+         │         Normaliza datas, horas, strings, causa_acidente e remove nulos
          │
          ├─► src/pipeline/enrich.py      ← GOLD: cruza as fontes e gera analíticos
          │         acidentes + localidade (município/UF/habitantes/frota)
@@ -162,9 +169,9 @@ streamlit run app/dashboard.py
 * **MG** lidera em volume de acidentes entre os estados (2,1 milhões), enquanto **SP** e **BA** apresentam as maiores taxas de mortalidade (10,5% e 8,3%, respectivamente)
 * **SC e DF** possuem as menores taxas de mortalidade entre os estados com alto volume de acidentes (~1,2–1,4%)
 
-### 🔗 Correlação Frota × Acidentes
-* Coeficiente de Pearson **r = 0,686** entre frota circulante e total de acidentes — correlação moderada-forte
-* Municípios com maior frota tendem a ter mais acidentes, mas a relação não é diretamente proporcional: cidades menores com frota reduzida podem apresentar taxas por 100 mil habitantes até mais elevadas
+### 🔗 Relação Acidentes × Óbitos
+* A relação entre total de acidentes e total de óbitos por município ajuda a separar locais com alta frequência de ocorrências dos locais com maior gravidade.
+* Municípios com volume semelhante de acidentes podem apresentar mortalidade muito diferente, reforçando a importância de analisar infraestrutura, velocidade média, horário e contexto local.
 
 ---
 
